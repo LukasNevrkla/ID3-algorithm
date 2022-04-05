@@ -1,12 +1,18 @@
-########################
-# Author: Lukáš Nevrkla
-########################
+###############################š##
+# Author:           Lukáš Nevrkla
+# Auto-testSets:    @Matej
+##################################
 
 import json
 import sys
 import os
 import math
 import logging
+
+
+CGREEN  = '\33[32m'
+CRED = '\033[91m'
+CEND = '\033[0m'
 
 log = logging.getLogger("logger")
 log.disabled = True
@@ -18,7 +24,24 @@ class Node:
         self.leaf = leaf
         self.str = str
         self.nexts = []
-    
+
+def get_final_class(tree,data):
+
+    while (not tree.leaf):
+        for attribute in data:
+            for n in tree.nexts:
+                if (n[0] == attribute):
+                    tree = n[1]
+    return tree.val
+
+def compare_test_examples(final_val, exp_val):
+    fin_val = "{'" + final_val + "'}"
+    if fin_val == str(exp_val):
+        return (CGREEN + "OK" + CEND)
+    else:
+        return (CRED + "FAIL" + CEND)
+
+
 def ResultClasses(examples):
     classes = [e[1] for e in examples]
     return set(classes)
@@ -143,15 +166,29 @@ if __name__ == "__main__":
     #root = DecisionTree(examples, props, props, classes, InduceTree)
     #PrintTree(root)
 
-    #print("ID3")
-    print("Train set = examples[3:12]")
-    print("-" * 25)
-    root = DecisionTree(examples[3:12], props, props, classes, ID3Tree)
-    PrintTree(root)
-    print()
+    runBatches = [
+        {
+            "trainSet" : [3, 12],
+            "testSet"  : [0, 3]
+        },
+        {
+            "trainSet" : [0, 9],
+            "testSet"  : [9, 12]
+        }
+    ]
 
-    print("Train set = examples[0:9]")
-    print("-" * 25)
-    root = DecisionTree(examples[0:9], props, props, classes, ID3Tree)
-    PrintTree(root)
+    for b in runBatches:
+        print("Train set = examples [{0}, {1}]".format(b["trainSet"][0], b["trainSet"][1]))
+        print("-" * 25)
 
+        root = DecisionTree(
+            examples[b["trainSet"][0] : b["trainSet"][1]], 
+            props, props, classes, ID3Tree)
+        PrintTree(root)
+        print("-" * 25)
+
+        print("Test set = examples [{0}, {1}]".format(b["testSet"][0], b["testSet"][1]))
+        for t in range(b["testSet"][0], b["testSet"][1]):
+            res = compare_test_examples(examples[t][1], get_final_class(root, examples[t]))
+            print(str(t) + ":", examples[t], " => ", get_final_class(root, examples[t]), res)
+            print()
