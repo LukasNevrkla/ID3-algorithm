@@ -54,7 +54,7 @@ def ExamplesWithVal(examples, val, prop, allProps):
 
 def MostFreqClass(examples):
     classes = ResultClasses(examples)
-    return [max(set(classes), key = classes.count)]
+    return set(max(set(classes), key = classes.count))
 
 def Entropy(examples, classes):
     if len(examples) == 0:
