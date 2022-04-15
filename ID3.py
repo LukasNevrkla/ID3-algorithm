@@ -44,13 +44,17 @@ def compare_test_examples(final_val, exp_val):
 
 def ResultClasses(examples):
     classes = [e[1] for e in examples]
-    return set(classes)
+    return classes
 
 def ExamplesWithVal(examples, val, prop, allProps):
     propIndex = list(allProps.keys()).index(prop)
     #log.info("{0} {1} {2} {3}".format(val, prop, allProps, str(propIndex)))
     log.info([e[propIndex + 2] for e in examples])
     return [e for e in examples if e[propIndex + 2] == val]
+
+def MostFreqClass(examples):
+    classes = ResultClasses(examples)
+    return [max(set(classes), key = classes.count)]
 
 def Entropy(examples, classes):
     if len(examples) == 0:
@@ -110,7 +114,7 @@ def DecisionTree(examples, props, origProps, classes, alg):
     # print("Props: ", list(props.keys()))
     # print("-" * 10)
 
-    c = ResultClasses(examples)
+    c = set(ResultClasses(examples))
     if len(c) < 2:
         return Node(c, leaf=True)
     if (len(props) == 0):
@@ -123,7 +127,11 @@ def DecisionTree(examples, props, origProps, classes, alg):
         edge = value
         subExamples = ExamplesWithVal(examples, value, prop[0], origProps)
         subExamplesIndexes = [e[0] for e in subExamples]
-        node = DecisionTree(subExamples, newProps, origProps, classes, alg)
+        if len(subExamples) > 0:
+            node = DecisionTree(subExamples, newProps, origProps, classes, alg)
+        else: 
+            node = Node(MostFreqClass(examples), leaf=True)
+
         root.nexts.append([edge, node, subExamplesIndexes])
 
     log.info("root = {0}\n---------------".format(root.val))
